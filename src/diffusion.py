@@ -1,9 +1,29 @@
+# This module implements diffusion, epidemic spreading, network robustness,
+# and immunization strategies on graphs using NetworkX.
+# It includes Independent Cascade, Linear Threshold, SIR models,
+# and network attack/immunization simulations.
 import random
 import numpy as np
 import networkx as nx
 
 
 def independent_cascade(G, seeds, probability=0.1, max_iterations=100):
+    """
+    Simulates information diffusion using the Independent Cascade (IC) model.
+
+    Each activated node has one chance to activate its neighbors
+    with a fixed probability.
+
+    Args:
+        G (networkx.Graph): The input network.
+        seeds (list or set): Initial seed nodes.
+        probability (float): Activation probability for each edge.
+        max_iterations (int): Maximum number of diffusion steps.
+
+    Returns:
+        activated (set): All activated nodes.
+        history (list): Nodes activated at each iteration.
+    """
     random.seed(42)
     activated = set(seeds)
     newly_activated = set(seeds)
@@ -30,6 +50,17 @@ def independent_cascade(G, seeds, probability=0.1, max_iterations=100):
 
 
 def run_diffusion_simulation(G, seed_nodes, probability=0.1):
+    """
+    Runs an Independent Cascade diffusion simulation and summarizes results.
+
+    Args:
+        G (networkx.Graph): The network graph.
+        seed_nodes (list): Initial seed nodes.
+        probability (float): Activation probability.
+
+    Returns:
+        dict: Summary statistics of the diffusion process.
+    """
     final_activated, spread_history = independent_cascade(G, seed_nodes, probability)
     return {
         'seed_nodes': seed_nodes,
@@ -41,6 +72,19 @@ def run_diffusion_simulation(G, seed_nodes, probability=0.1):
 
 
 def sir_model(G, initial_infected, beta=0.3, gamma=0.1, max_steps=100):
+    """
+    Simulates epidemic spreading using the SIR (Susceptible–Infected–Recovered) model.
+
+    Args:
+        G (networkx.Graph): The contact network.
+        initial_infected (list): Initially infected nodes.
+        beta (float): Infection probability.
+        gamma (float): Recovery probability.
+        max_steps (int): Maximum simulation steps.
+
+    Returns:
+        dict: Time-series data of susceptible, infected, and recovered populations.
+    """
     susceptible = set(G.nodes()) - set(initial_infected)
     infected = set(initial_infected)
     recovered = set()
@@ -85,6 +129,22 @@ def sir_model(G, initial_infected, beta=0.3, gamma=0.1, max_steps=100):
 
 
 def linear_threshold(G, seeds, thresholds=None, max_iterations=100):
+    """
+    Simulates diffusion using the Linear Threshold (LT) model.
+
+    A node becomes active when the fraction of its active neighbors
+    exceeds its threshold.
+
+    Args:
+        G (networkx.Graph): The network.
+        seeds (list): Initial active nodes.
+        thresholds (dict): Node-specific activation thresholds.
+        max_iterations (int): Maximum diffusion steps.
+
+    Returns:
+        activated (set): All activated nodes.
+        history (list): Activation history per iteration.
+    """
     random.seed(42)
     
     if thresholds is None:
@@ -119,6 +179,17 @@ def linear_threshold(G, seeds, thresholds=None, max_iterations=100):
 
 
 def simulate_network_attack(G, attack_type='random', percentage=0.1):
+    """
+    Simulates network robustness under node removal (attack).
+
+    Args:
+        G (networkx.Graph): Original network.
+        attack_type (str): 'random', 'targeted_degree', or 'targeted_betweenness'.
+        percentage (float): Fraction of nodes to remove.
+
+    Returns:
+        dict: Network fragmentation statistics after attack.
+    """
     H = G.copy()
     num_to_remove = max(1, int(G.number_of_nodes() * percentage))
     
@@ -161,6 +232,24 @@ def simulate_network_attack(G, attack_type='random', percentage=0.1):
 
 
 def compare_immunization_strategies(G, infected_seeds, beta=0.3, gamma=0.1, immunization_percentage=0.1):
+    """
+    Compares epidemic outcomes under different immunization strategies.
+
+    Strategies:
+        - No immunization
+        - Random immunization
+        - Targeted immunization (high-degree nodes)
+
+    Args:
+        G (networkx.Graph): The network.
+        infected_seeds (list): Initially infected nodes.
+        beta (float): Infection rate.
+        gamma (float): Recovery rate.
+        immunization_percentage (float): Fraction of nodes to immunize.
+
+    Returns:
+        dict: Maximum number of infected nodes for each strategy.
+    """
     results = {}
     
     history_no_immunization = sir_model(G, infected_seeds, beta, gamma)
