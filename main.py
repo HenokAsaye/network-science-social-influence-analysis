@@ -1,3 +1,5 @@
+
+import logging
 from src.load_data import load_network_data
 from src.build_graph import build_graph
 from src.analysis import (
@@ -21,22 +23,27 @@ def print_separator():
 
 
 def main():
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        handlers=[logging.StreamHandler()]
+    )
     print_separator()
-    print("SOCIAL NETWORK ANALYSIS - INFLUENCE & DIFFUSION STUDY")
+    logging.info("SOCIAL NETWORK ANALYSIS - INFLUENCE & DIFFUSION STUDY")
     print_separator()
-    
-    print("\n[1] Loading network data...")
+
+    logging.info("[1] Loading network data...")
     df = load_network_data("data/sample_network.csv")
-    print(f"    Loaded {len(df)} edges from dataset")
-    
-    print("\n[2] Building graph...")
+    logging.info(f"Loaded {len(df)} edges from dataset")
+
+    logging.info("[2] Building graph...")
     G = build_graph(df)
-    print(f"    Nodes: {G.number_of_nodes()}")
-    print(f"    Edges: {G.number_of_edges()}")
-    print(f"    Density: {round(2 * G.number_of_edges() / (G.number_of_nodes() * (G.number_of_nodes() - 1)), 4)}")
-    
-    print("\n[3] Computing centrality metrics...")
-    
+    logging.info(f"Nodes: {G.number_of_nodes()}")
+    logging.info(f"Edges: {G.number_of_edges()}")
+    logging.info(f"Density: {round(2 * G.number_of_edges() / (G.number_of_nodes() * (G.number_of_nodes() - 1)), 4)}")
+
+    logging.info("[3] Computing centrality metrics...")
+
     degree_cent = compute_degree_centrality(G)
     betweenness_cent = compute_betweenness_centrality(G)
     closeness_cent = compute_closeness_centrality(G)
