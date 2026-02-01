@@ -224,8 +224,8 @@ def main():
                     weight_column = weight_selection
                     st.info(f"📏 Using '{weight_column}' as edge weights")
         else:
-            df = load_data("data/sample_network.csv")
-            st.info("📂 Using sample dataset: data/sample_network.csv")
+            df = load_data("data/nyc_taxi_network_dashboard.csv")
+            st.info("📂 Using sample dataset: data/nyc_taxi_network_dashboard.csv")
             st.write(f"**Edges:** {len(df)}")
             
             # Check if sample data has weight column
