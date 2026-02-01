@@ -136,11 +136,15 @@ def simulate_network_attack(G, attack_type='random', percentage=0.1):
     
     H.remove_nodes_from(nodes_to_remove)
     
-    original_components = nx.number_connected_components(G)
-    new_components = nx.number_connected_components(H)
+    # Use undirected version for connected components (only defined for undirected graphs)
+    G_undirected = G.to_undirected() if G.is_directed() else G
+    H_undirected = H.to_undirected() if H.is_directed() else H
+    
+    original_components = nx.number_connected_components(G_undirected)
+    new_components = nx.number_connected_components(H_undirected)
     
     if len(H.nodes()) > 0:
-        largest_cc = max(nx.connected_components(H), key=len)
+        largest_cc = max(nx.connected_components(H_undirected), key=len)
         largest_cc_size = len(largest_cc)
     else:
         largest_cc_size = 0
