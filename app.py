@@ -75,8 +75,8 @@ def load_data(filepath):
 
 
 @st.cache_data
-def create_graph(_df):
-    return build_graph(_df)
+def create_graph(_df, weight_column=None):
+    return build_graph(_df, weight_column)
 
 
 def create_interactive_network(G, node_to_community, title="Network Visualization"):
@@ -198,6 +198,8 @@ def main():
         
         uploaded_file = st.file_uploader("Upload CSV (source, target columns)", type=['csv'])
         
+        weight_column = None
+        
         if uploaded_file is not None:
             df = pd.read_csv(uploaded_file)
             st.success(f"✅ File uploaded: {uploaded_file.name}")
@@ -208,10 +210,35 @@ def main():
             if 'source' not in df.columns or 'target' not in df.columns:
                 st.error("⚠️ CSV must have 'source' and 'target' columns!")
                 st.stop()
+            
+            # Weight column selection
+            other_columns = [col for col in df.columns if col not in ['source', 'target']]
+            if other_columns:
+                weight_options = ["None (unweighted)"] + other_columns
+                weight_selection = st.selectbox(
+                    "🔢 Weight Column (optional)",
+                    weight_options,
+                    help="Select a column to use as edge weights for weighted graph analysis"
+                )
+                if weight_selection != "None (unweighted)":
+                    weight_column = weight_selection
+                    st.info(f"📏 Using '{weight_column}' as edge weights")
         else:
             df = load_data("data/sample_network.csv")
             st.info("📂 Using sample dataset: data/sample_network.csv")
             st.write(f"**Edges:** {len(df)}")
+            
+            # Check if sample data has weight column
+            other_columns = [col for col in df.columns if col not in ['source', 'target']]
+            if other_columns:
+                weight_options = ["None (unweighted)"] + other_columns
+                weight_selection = st.selectbox(
+                    "🔢 Weight Column (optional)",
+                    weight_options,
+                    help="Select a column to use as edge weights for weighted graph analysis"
+                )
+                if weight_selection != "None (unweighted)":
+                    weight_column = weight_selection
         
         st.markdown("---")
         st.header("⚙️ Settings")
@@ -224,7 +251,7 @@ def main():
         if community_algorithm == "Girvan-Newman":
             num_communities = st.slider("Number of Communities", 2, 10, 3)
     
-    G = create_graph(df)
+    G = create_graph(df, weight_column)
     
     if community_algorithm == "Louvain":
         node_to_community, communities = detect_communities(G)
@@ -243,6 +270,13 @@ def main():
     
     with tabs[0]:
         st.header("Network Overview")
+        
+        # Show if graph is weighted
+        is_weighted = weight_column is not None
+        if is_weighted:
+            st.success(f"📊 **Weighted Graph** - Using '{weight_column}' as edge weights")
+        else:
+            st.info("📊 **Unweighted Graph** - No weight column selected")
         
         metrics = compute_network_metrics(G)
         

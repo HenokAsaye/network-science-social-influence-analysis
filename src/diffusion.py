@@ -1,5 +1,6 @@
 import random
 import numpy as np
+import networkx as nx
 
 
 def independent_cascade(G, seeds, probability=0.1, max_iterations=100):
@@ -127,7 +128,6 @@ def simulate_network_attack(G, attack_type='random', percentage=0.1):
         degree_sorted = sorted(H.degree(), key=lambda x: x[1], reverse=True)
         nodes_to_remove = [n for n, d in degree_sorted[:num_to_remove]]
     elif attack_type == 'targeted_betweenness':
-        import networkx as nx
         betweenness = nx.betweenness_centrality(H)
         sorted_nodes = sorted(betweenness.items(), key=lambda x: x[1], reverse=True)
         nodes_to_remove = [n for n, b in sorted_nodes[:num_to_remove]]
@@ -162,7 +162,6 @@ def compare_immunization_strategies(G, infected_seeds, beta=0.3, gamma=0.1, immu
     history_no_immunization = sir_model(G, infected_seeds, beta, gamma)
     results['no_immunization'] = max(history_no_immunization['infected'])
     
-    import networkx as nx
     num_to_immunize = max(1, int(G.number_of_nodes() * immunization_percentage))
     
     random.seed(42)
