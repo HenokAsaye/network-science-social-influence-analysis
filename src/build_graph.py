@@ -31,4 +31,10 @@ def build_graph(df, weight_column=None):
                 data['weight'] = data.pop(weight_column)
     else:
         G = nx.from_pandas_edgelist(df, source='source', target='target')
+    
+    # Remove self-loops as they cause issues with many graph algorithms
+    self_loops = list(nx.selfloop_edges(G))
+    if self_loops:
+        G.remove_edges_from(self_loops)
+    
     return G

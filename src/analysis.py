@@ -131,27 +131,43 @@ def get_top_nodes(centrality_dict: Dict[Any, float], n: int = 5) -> List[Tuple[A
     return sorted_nodes[:n]
 
 
-def compute_network_metrics(G: nx.Graph) -> Dict[str, Any]:
+
+def compute_network_metrics(G):
+    # Use undirected version for metrics that require it
+    G_undirected = G.to_undirected() if G.is_directed() else G
+    
+    # Check connectivity on undirected version
+    is_connected = nx.is_connected(G_undirected)
     metrics = {
         'nodes': G.number_of_nodes(),
         'edges': G.number_of_edges(),
         'density': nx.density(G),
-        'average_clustering': nx.average_clustering(G),
-        'transitivity': nx.transitivity(G),
-        'average_degree': sum(dict(G.degree()).values()) / G.number_of_nodes(),
-        'diameter': nx.diameter(G) if nx.is_connected(G) else 'N/A (disconnected)',
-        'average_shortest_path': nx.average_shortest_path_length(G) if nx.is_connected(G) else 'N/A',
+        'average_clustering': nx.average_clustering(G_undirected),
+        'transitivity': nx.transitivity(G_undirected),
+        'average_degree': sum(dict(G.degree()).values()) / G.number_of_nodes() if G.number_of_nodes() > 0 else 0,
+        'diameter': nx.diameter(G_undirected) if is_connected else 'N/A (disconnected)',
+        'average_shortest_path': nx.average_shortest_path_length(G_undirected) if is_connected else 'N/A',
         'assortativity': nx.degree_assortativity_coefficient(G),
-        'num_connected_components': nx.number_connected_components(G)
+        'num_connected_components': nx.number_connected_components(G_undirected)
     }
     return metrics
 
 
-def compute_link_prediction_scores(G: nx.Graph) -> List[Dict[str, Any]]:
-    non_edges = list(nx.non_edges(G))
-    jaccard = list(nx.jaccard_coefficient(G, non_edges))
-    adamic_adar = list(nx.adamic_adar_index(G, non_edges))
-    preferential = list(nx.preferential_attachment(G, non_edges))
+def compute_link_prediction_scores(G):
+    # Link prediction algorithms work on undirected graphs
+    G_undirected = G.to_undirected() if G.is_directed() else G
+    non_edges = list(nx.non_edges(G_undirected))
+    
+    # Limit to avoid memory issues with large graphs
+    if len(non_edges) > 1000:
+        import random
+        random.seed(42)
+        non_edges = random.sample(non_edges, 1000)
+    
+    jaccard = list(nx.jaccard_coefficient(G_undirected, non_edges))
+    adamic_adar = list(nx.adamic_adar_index(G_undirected, non_edges))
+    preferential = list(nx.preferential_attachment(G_undirected, non_edges))
+
     predictions = []
     for i, (u, v) in enumerate(non_edges):
         predictions.append({
@@ -164,25 +180,29 @@ def compute_link_prediction_scores(G: nx.Graph) -> List[Dict[str, Any]]:
     return sorted(predictions, key=lambda x: x['adamic_adar'], reverse=True)
 
 
-def identify_bridge_nodes(G: nx.Graph) -> Tuple[List[Any], List[Tuple[Any, Any]]]:
-    bridges = list(nx.bridges(G))
+def identify_bridge_nodes(G):
+    # Convert to undirected for bridge detection (bridges only defined for undirected graphs)
+    G_undirected = G.to_undirected() if G.is_directed() else G
+    bridges = list(nx.bridges(G_undirected))
     bridge_nodes = set()
     for u, v in bridges:
         bridge_nodes.add(u)
         bridge_nodes.add(v)
     return list(bridge_nodes), bridges
 
-
-def compute_node_vulnerability(G: nx.Graph) -> Dict[Any, int]:
-    original_components = nx.number_connected_components(G)
-    vulnerability: Dict[Any, int] = {}
+def compute_node_vulnerability(G):
+    # Use undirected version for connected components
+    G_undirected = G.to_undirected() if G.is_directed() else G
+    original_components = nx.number_connected_components(G_undirected)
+    vulnerability = {}
     for node in G.nodes():
-        H = G.copy()
+        H = G_undirected.copy()
         H.remove_node(node)
         new_components = nx.number_connected_components(H)
         vulnerability[node] = new_components - original_components
     return vulnerability
 
-
-def compute_k_core_decomposition(G: nx.Graph) -> Dict[Any, int]:
-    return nx.core_number(G)
+def compute_k_core_decomposition(G):
+    # K-core decomposition only works on undirected graphs
+    G_undirected = G.to_undirected() if G.is_directed() else G
+    return nx.core_number(G_undirected)
