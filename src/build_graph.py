@@ -37,4 +37,10 @@ def build_graph(df, weight_column=None):
     if self_loops:
         G.remove_edges_from(self_loops)
     
+    
+    num_nodes = G.number_of_nodes()
+    num_edges = G.number_of_edges()
+    print(f"[DEBUG] Graph has {num_nodes} nodes and {num_edges} edges")
+    
+    
     return G
