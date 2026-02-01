@@ -25,14 +25,14 @@ def build_graph(df, weight_column=None):
             target='target', 
             edge_attr=weight_column
         )
-        # Rename the weight attribute to 'weight' for consistency
+        
         for u, v, data in G.edges(data=True):
             if weight_column in data:
                 data['weight'] = data.pop(weight_column)
     else:
         G = nx.from_pandas_edgelist(df, source='source', target='target')
     
-    # Remove self-loops as they cause issues with many graph algorithms
+    
     self_loops = list(nx.selfloop_edges(G))
     if self_loops:
         G.remove_edges_from(self_loops)
