@@ -41,6 +41,13 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
+st.session_state['project_info'] = {
+    "version": "1.0.0",
+    "description": "Dashboard for social network analysis and diffusion modeling",
+    "last_updated": "2026-02-01",             
+    "license": "MIT",                          
+    "data_source": "NYC Taxi Network + Sample Data",  
+}
 
 st.markdown("""
 <style>
